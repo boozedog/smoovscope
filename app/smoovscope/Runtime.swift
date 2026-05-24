@@ -4,6 +4,7 @@ import Observation
 
 /// Top-level container: owns the sidecar process and the span store.
 @Observable
+@MainActor
 final class Runtime {
     let sidecar = SidecarController()
     let store = SpanStore()

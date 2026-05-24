@@ -12,12 +12,14 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
 	coltracepb "go.opentelemetry.io/proto/otlp/collector/trace/v1"
 	commonpb "go.opentelemetry.io/proto/otlp/common/v1"
 	tracepb "go.opentelemetry.io/proto/otlp/trace/v1"
+	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -75,17 +77,21 @@ func handleTraces(store *Store) http.HandlerFunc {
 		defer r.Body.Close()
 
 		var req coltracepb.ExportTraceServiceRequest
-		switch r.Header.Get("Content-Type") {
+		ct, _, _ := strings.Cut(r.Header.Get("Content-Type"), ";")
+		ct = strings.TrimSpace(ct)
+		switch ct {
 		case "application/x-protobuf", "":
 			if err := proto.Unmarshal(body, &req); err != nil {
 				http.Error(w, "invalid protobuf: "+err.Error(), http.StatusBadRequest)
 				return
 			}
 		case "application/json":
-			http.Error(w, "json OTLP not yet supported", http.StatusUnsupportedMediaType)
-			return
+			if err := (protojson.UnmarshalOptions{DiscardUnknown: true}).Unmarshal(body, &req); err != nil {
+				http.Error(w, "invalid json: "+err.Error(), http.StatusBadRequest)
+				return
+			}
 		default:
-			http.Error(w, "unsupported content-type", http.StatusUnsupportedMediaType)
+			http.Error(w, "unsupported content-type: "+ct, http.StatusUnsupportedMediaType)
 			return
 		}
 

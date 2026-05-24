@@ -1,10 +1,13 @@
-.PHONY: sidecar run-sidecar xcodeproj clean
+.PHONY: sidecar run-sidecar run-app xcodeproj clean
 
 sidecar:
 	./scripts/build-sidecar.sh
 
 run-sidecar:
 	cd sidecar && go run .
+
+run-app:
+	bash ./scripts/run-app.sh
 
 xcodeproj:
 	cd app && xcodegen generate

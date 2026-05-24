@@ -20,9 +20,10 @@ targets:
     deploymentTarget: "26.0"
     sources:
       - path: smoovscope
-    resources:
       - path: Resources/otlp-receiver
+        type: file
         buildPhase: resources
+        optional: true
     info:
       path: smoovscope/Info.plist
       properties:
