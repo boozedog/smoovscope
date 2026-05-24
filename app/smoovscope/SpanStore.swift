@@ -104,7 +104,7 @@ final class SpanStore {
         }
         return grouped.map { (traceID, spans) -> Trace in
             let sorted = spans.sorted { $0.startNs < $1.startNs }
-            let root = sorted.first { $0.parentSpanID.isEmpty || $0.parentSpanID.allSatisfy { $0 == "0" } } ?? sorted[0]
+            let root = sorted.first { $0.isRootParent } ?? sorted[0]
             return Trace(
                 traceID: traceID,
                 rootName: root.name,
@@ -119,6 +119,10 @@ final class SpanStore {
 
     func spans(forTrace traceID: String) -> [SpanRecord] {
         spans.filter { $0.traceID == traceID }.sorted { $0.startNs < $1.startNs }
+    }
+
+    func spanTree(forTrace traceID: String) -> [SpanTreeItem] {
+        spans(forTrace: traceID).nestedSpanItems()
     }
 }
 
